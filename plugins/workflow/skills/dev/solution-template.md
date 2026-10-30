@@ -78,7 +78,9 @@ Errors: `400` invalid input · `403` not allowed · `409` <conflict case>
 
 ## 7. Testing
 
-- <What is tested, type (unit / integration / e2e), which requirement> - `<test file>`
+Test cases: `<path to the -test-cases.xlsx sheet>` (<n> cases).
+
+- <Test approach: which levels (unit / integration / e2e / manual), where automated tests go, test data needed>
 
 ## 8. Rollout and risks
 

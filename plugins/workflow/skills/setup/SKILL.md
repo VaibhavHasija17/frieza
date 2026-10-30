@@ -24,8 +24,9 @@ Generated project files (`CLAUDE.md`, module `CLAUDE.md`, `.claude/settings.json
 ## 1. Inspect the machine
 
 - OS and shell (`uname -s`, or Windows).
-- Tools: `node --version` (needs 20+), `python3` (or `python` on Windows; the guard hook needs it), `git`, `gh` and whether `gh auth status` passes.
+- Tools: `node --version` (needs 20+), `python3` (or `python` on Windows; the guard hook needs it), `openpyxl` (`python3 -c "import openpyxl"`) or `uv` (the test case sheet needs one of them), `git`, `gh` and whether `gh auth status` passes.
 - `claude plugin list` and `claude plugin marketplace list`.
+- `claude --version` (usage tracking needs 2.1.269+ for repository tagging) and the `env` block of `~/.claude/settings.json` (existing telemetry settings and team).
 
 Required user-level plugins (active in every project on the machine):
 
@@ -37,6 +38,29 @@ Required user-level plugins (active in every project on the machine):
 | `claude-md-management@claude-plugins-official` | built in |
 | `security-guidance@claude-plugins-official` | built in |
 | `superpowers@claude-plugins-official` | built in |
+
+### Usage tracking
+
+Claude usage is sent to the company dashboard through Claude Code's built-in OpenTelemetry export. Company settings are in `telemetry.json` in this skill's directory. If its `endpoint` is empty, skip usage tracking and say so in the report.
+
+Claude Code ignores telemetry variables in a project's `.claude/settings.json`, so they go in the **user** settings, `~/.claude/settings.json`, under `env`:
+
+| Variable | Value |
+|----------|-------|
+| `CLAUDE_CODE_ENABLE_TELEMETRY` | `1` |
+| `OTEL_METRICS_EXPORTER` | `otlp` |
+| `OTEL_LOGS_EXPORTER` | `otlp` if `export_events` is true; otherwise leave unset |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | `protocol` from `telemetry.json` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `endpoint` from `telemetry.json` |
+| `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE` | `temporality` from `telemetry.json` (`cumulative` for Prometheus and Grafana) |
+| `OTEL_METRICS_INCLUDE_REPOSITORY` | `true` (tags every metric with the git repo) |
+| `OTEL_RESOURCE_ATTRIBUTES` | `team.id=<team>`: ask the developer for their team once; lowercase, no spaces |
+| `OTEL_SERVICE_NAME` | `service_name` from `telemetry.json`, if set |
+| `OTEL_EXPORTER_OTLP_HEADERS` | Only if `needs_token` is true: `Authorization=<auth_scheme> <token>`. Use `token` from `telemetry.json` if set; otherwise ask the developer for the ingest token (for Grafana Cloud: the base64 `instanceID:token` value). Never write it anywhere except the user settings file. |
+
+Never set `OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_ASSISTANT_RESPONSES`, `OTEL_LOG_TOOL_DETAILS`, `OTEL_LOG_TOOL_CONTENT`, or `OTEL_LOG_RAW_API_BODIES`: prompts, code, and commands stay private.
+
+If managed settings already set these variables, leave them alone.
 
 ## 2. Inspect the project
 
@@ -67,7 +91,7 @@ Company defaults apply unless the project already does something different on pu
 | Protected branches | `main`, `master`, `develop` | The repo uses other long-lived branches (e.g. `staging`, `release/*`). |
 | Branch naming | `type/TICKET-slug` | The history shows a different consistent scheme. |
 | Commit format | Conventional Commits + `Refs: TICKET` | commitlint config or a different consistent format in `git log`. |
-| PR description | Standard body in `/workflow:pr` | The repo has a PR template. |
+| PR description | Standard body in `/workflow:dev` | The repo has a PR template. |
 | Solution docs | `docs/solutions/` | The repo already keeps design docs elsewhere. |
 
 Also decide:
@@ -78,6 +102,7 @@ Also decide:
 
 Show a short plan:
 - Machine: plugins and marketplaces to add; missing tools with the install command for this OS (e.g. `brew install gh`, `sudo apt install gh`, `winget install GitHub.cli`).
+- Usage tracking: the settings to add, and plainly what is sent: your email and account ID, team, repository, session count, tokens and cost per model, active time, lines added and removed, commits and PRs created, and which skills and plugins were used. Not sent: prompts, responses, code, file contents, or commands.
 - Project: what was detected, each choice from step 3 and why, and the exact files to create or change, including the list of module CLAUDE.md files to create or update.
 
 Wait for the developer to confirm or adjust. Install system tools only if they explicitly agree.
@@ -85,6 +110,8 @@ Wait for the developer to confirm or adjust. Install system tools only if they e
 ## 5. Apply
 
 **Machine:** add missing marketplaces (`claude plugin marketplace add <repo>`), then install missing plugins (`claude plugin install <plugin> --scope user`). If one fails, report it and continue.
+
+**Usage tracking:** merge the variables from step 1 into the `env` block of `~/.claude/settings.json`. Keep every other key; replace only these variables.
 
 **`.claude/settings.json`** (shared, committed): merge, keep every existing key, do not duplicate entries.
 ```json
@@ -112,9 +139,9 @@ Wait for the developer to confirm or adjust. Install system tools only if they e
 
 ## 6. Report
 
-- Machine: installed now, already present, failed; tools still missing.
+- Machine: installed now, already present, failed; tools still missing; usage tracking on (endpoint, team) or skipped.
 - Project: files created, changed, or skipped as up to date, and each adaptation made with its reason.
 - Next steps:
-  1. Restart Claude Code so new plugins and settings load.
+  1. Restart Claude Code so new plugins and settings load. Usage data then appears on the dashboard within a few minutes (metric `claude_code.session.count`).
   2. Review, then commit `.claude/settings.json`, `CLAUDE.md`, and the module `CLAUDE.md` files.
   3. claude-mem asks you to sign in and choose a memory provider. Follow the company policy on which provider is allowed for company code.

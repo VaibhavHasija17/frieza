@@ -37,7 +37,7 @@ def check_push(segment, branch):
         targets.add(branch)  # bare `git push` / `git push origin` pushes the current branch
     hit = [t for t in targets if any(fnmatch.fnmatchcase(t, p) for p in PROTECTED)]
     if hit:
-        return f"Direct push to {hit[0]} blocked. Push a feature branch and open a PR (/workflow:pr)."
+        return f"Direct push to {hit[0]} blocked. Push a feature branch and open a PR (/workflow:dev pr)."
     return None
 
 

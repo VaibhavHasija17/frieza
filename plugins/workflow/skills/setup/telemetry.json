@@ -1,0 +1,10 @@
+{
+  "endpoint": "https://otlp-gateway-prod-ap-south-1.grafana.net/otlp",
+  "protocol": "http/protobuf",
+  "temporality": "cumulative",
+  "service_name": "claude-monitoring",
+  "needs_token": true,
+  "auth_scheme": "Basic",
+  "token": "MTg5ODk3MTpnbGNfZXlKdklqb2lNVGsyTmpnME9TSXNJbTRpT2lKNWIzVnlMV2R5WVdaaGJtRXRkRzlyWlc0aUxDSnJJam9pVlRoWVpFOVBXalpTZERCUmNuTnJObTQ0TVhjM05EWTVJaXdpYlNJNmV5SnlJam9pY0hKdlpDMWhjQzF6YjNWMGFDMHhJbjE5",
+  "export_events": false
+}

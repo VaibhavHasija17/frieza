@@ -30,15 +30,13 @@ Company standard (plugin `workflow@dev-workflow`). The `/workflow:*` skills foll
 - Protected branches: `<main, develop>` - never push directly
 - Branch naming: `<type/TICKET-slug>`
 - Commit format: `<Conventional Commits: type(scope): summary, footer Refs: TICKET>`
-- PR description: `<path to PR template, or "standard /workflow:pr body">`
+- PR description: `<path to PR template, or "standard /workflow:dev body">`
 - Solution docs: `<docs/solutions/>`
 
-Steps:
-
-1. `/workflow:solution-doc path/to/prd.md` - technical solution doc, reviewed before coding starts.
-2. Create your branch, then `/workflow:start TICKET short description` - checks state, suggests a branch name, plans.
-3. `/workflow:commit` - checks run first, then a commit in the format above.
-4. `/workflow:pr` - checks, self-review, push, PR.
+`/workflow:dev path/to/prd.md` runs the whole flow, pausing for approval after each stage:
+solution doc and test cases → branch check and plan → build → test → review → commit → PR.
+`/workflow:review` reviews the current branch, a PR, or files on its own.
+Run `/workflow:dev` with no input to resume, or `/workflow:dev commit` / `/workflow:dev pr` to jump to a stage.
 
 Hooks block force push, direct push to protected branches, and edits to `.env` files.
 
