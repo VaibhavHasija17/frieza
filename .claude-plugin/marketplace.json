@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "dev-workflow",
+  "description": "Company-standard Claude Code dev workflow.",
+  "owner": {
+    "name": "Engineering"
+  },
+  "plugins": [
+    {
+      "name": "workflow",
+      "description": "Branch, commit and PR conventions plus safety guards.",
+      "source": "./plugins/workflow",
+      "category": "development"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+# <Project name>
+
+<One paragraph: what this project is, who uses it, main tech stack.>
+
+## Commands
+
+- Install: `<command>`
+- Dev server: `<command>` (<local URL>)
+- Build: `<command>`
+- Lint: `<command>`
+- Format: `<command>`
+- Typecheck: `<command>`
+- Test: `<command>`
+- Single test: `<command>`
+- DB migration: `<command>`
+
+## Layout
+
+- `<dir>/` - <what lives here>
+
+## Conventions
+
+- <Patterns visible in the code: layering, naming, error handling, where new code goes, test location.>
+
+## Workflow
+
+Company standard (plugin `workflow@dev-workflow`). The `/workflow:*` skills follow these values for this project.
+
+- Default branch: `<main>`
+- Protected branches: `<main, develop>` - never push directly
+- Branch naming: `<type/TICKET-slug>`
+- Commit format: `<Conventional Commits: type(scope): summary, footer Refs: TICKET>`
+- PR description: `<path to PR template, or "standard /workflow:pr body">`
+- Solution docs: `<docs/solutions/>`
+
+Steps:
+
+1. `/workflow:solution-doc path/to/prd.md` - technical solution doc, reviewed before coding starts.
+2. Create your branch, then `/workflow:start TICKET short description` - checks state, suggests a branch name, plans.
+3. `/workflow:commit` - checks run first, then a commit in the format above.
+4. `/workflow:pr` - checks, self-review, push, PR.
+
+Hooks block force push, direct push to protected branches, and edits to `.env` files.
+
+<!-- workflow:setup <short commit sha> -->

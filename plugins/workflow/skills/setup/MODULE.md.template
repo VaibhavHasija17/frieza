@@ -1,0 +1,18 @@
+# <Module name>
+
+<1-2 sentences: what this module does and why it exists.>
+
+## Key files
+
+- `<file>` - <role, e.g. entry point, routes, main service, model>
+
+## Connections
+
+- Uses: `<other modules, services, external APIs, DB tables>`
+- Used by: `<modules or apps that call into this one>`
+
+## Notes
+
+- <Module-specific rules, patterns, or gotchas. "None" if nothing beyond the root CLAUDE.md.>
+
+<!-- workflow:setup <short commit sha> -->

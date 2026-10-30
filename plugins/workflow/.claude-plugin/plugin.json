@@ -1,0 +1,5 @@
+{
+  "name": "workflow",
+  "version": "0.6.0",
+  "description": "Company-standard dev workflow: /workflow:setup, /workflow:solution-doc, /workflow:start, /workflow:commit, /workflow:pr, plus guard hooks."
+}
