@@ -32,10 +32,11 @@ Company standard (plugin `workflow@dev-workflow`). The `/workflow:*` skills foll
 - Commit format: `<Conventional Commits: type(scope): summary, footer Refs: TICKET>`
 - PR description: `<path to PR template, or "standard /workflow:dev body">`
 - Solution docs: `<docs/solutions/>`
+- Quality bar: `<docs/quality-bar.md, or "none">`
 
 `/workflow:dev path/to/prd.md` runs the whole flow, pausing for approval after each stage:
-solution doc and test cases → branch check and plan → build → test → review → commit → PR.
-`/workflow:review` reviews the current branch, a PR, or files on its own.
+clarify → solution doc and test cases (or diagnose for a bug) → branch check and plan → build → test → review → commit → PR.
+Each of `/workflow:clarify`, `/workflow:diagnose`, `/workflow:review`, and `/workflow:pr` also works on its own.
 Run `/workflow:dev` with no input to resume, or `/workflow:dev commit` / `/workflow:dev pr` to jump to a stage.
 
 Hooks block force push, direct push to protected branches, and edits to `.env` files.

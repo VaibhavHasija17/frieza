@@ -1,14 +1,16 @@
 ---
 name: dev
-description: Company dev workflow in one flow - PRD to technical solution doc and test case sheet, branch check and plan, implementation, testing, code review, commits, and pull request. Use when a developer starts a feature or ticket, provides a PRD or spec, or wants to commit or open a PR. Resumes from whichever stage the work is at.
-argument-hint: <PRD path, link, or text | ticket and description | stage name: solution, start, build, test, review, commit, pr>
+description: Company dev workflow in one flow - clarify the PRD, technical solution doc and test case sheet (or bug diagnosis), branch check and plan, implementation, testing, code review, commits, and pull request. Use when a developer starts a feature, bug, or ticket, provides a PRD or spec, or wants to commit or open a PR. Resumes from whichever stage the work is at.
+argument-hint: <PRD path, link, or text | ticket and description | stage name: solution, diagnose, start, build, test, review, commit, pr>
 ---
 
 # Dev workflow
 
 Input: $ARGUMENTS
 
-Stages run in order: **1 Solution → 2 Start → 3 Build → 4 Test → 5 Review → 6 Commit → 7 PR**. After each stage, report briefly and wait for the developer's OK before the next one.
+Stages run in order: **1 Solution (features) or Diagnose (bugs) → 2 Start → 3 Build → 4 Test → 5 Review → 6 Commit → 7 PR**. After each stage, report briefly and wait for the developer's OK before the next one.
+
+**Checklists** live in this plugin's `references/` folder (two folders up from this skill's directory): `security.md`, `performance.md`, `accessibility.md`, `observability.md`, `migrations.md`, `definition-of-done.md`. The project's quality bar is `docs/quality-bar.md`, if present.
 
 **Project conventions:** the **Workflow** section of `CLAUDE.md` overrides the defaults in this skill (branch naming, protected branches, commit format, PR template, solution docs folder). So does the repo's commitlint config.
 
@@ -16,8 +18,9 @@ Stages run in order: **1 Solution → 2 Start → 3 Build → 4 Test → 5 Revie
 
 ## 0. Find where to start
 
-- If the input names a stage (`solution`, `start`, `build`, `test`, `review`, `commit`, `pr`), go to it.
-- If the input is a PRD or spec, start at stage 1.
+- If the input names a stage (`solution`, `diagnose`, `start`, `build`, `test`, `review`, `commit`, `pr`), go to it.
+- If the input is a PRD or spec, start at stage 1 (Solution).
+- If the input is a bug report, error, or failing behaviour, start at stage 1 (Diagnose).
 - If the input is only a ticket or small task with no PRD, ask whether to write a solution doc or skip to stage 2.
 - If there is no input, detect the state and propose where to resume:
   - On a protected branch with no changes: stage 1 or 2.
@@ -25,14 +28,15 @@ Stages run in order: **1 Solution → 2 Start → 3 Build → 4 Test → 5 Revie
   - Commits ahead of the default branch and no PR (`gh pr view` fails): stage 7.
   - A solution doc and test sheet in the solution docs folder that match the branch's ticket or slug: use them for stages 3 and 4.
 
-## 1. Solution
+## 1. Solution (features)
 
 Turn the PRD into a technical solution document. No source code changes in this stage.
 
 **Read the PRD**
 - Load it from the given path, link, or pasted text. If none is given, ask for it.
 - Give every requirement an ID (`R1`, `R2`, ...). Include acceptance criteria and non-functional asks.
-- Anything ambiguous goes to **Open questions**. Do not invent product behaviour.
+
+**Clarify.** Run the `workflow:clarify` skill on the PRD. Skip it only if the developer says the PRD is complete. Its confirmed **Decisions** shape the doc; questions for other people go to the doc's **Open questions**. Do not invent product behaviour.
 
 **Analyse the codebase** (read `CLAUDE.md` first, and the module `CLAUDE.md` files of the areas involved). Establish, with file paths as evidence:
 - Stack and layering (e.g. route, controller, service, repository, model).
@@ -52,69 +56,86 @@ For broad sweeps use an Explore subagent and keep only its conclusions. Before p
 - Contracts, not implementations: request/response examples, columns, signatures. No full code.
 - Every requirement ID appears in section 2 and in at least one test.
 - Prefer extending existing code over adding modules; say why when something new is needed.
+- Ready to build: no design decision is left to whoever implements it. Every API shape, data type, error-handling strategy, and library choice is decided in the doc or listed as an open question.
+- Database, API, and data-format changes follow `migrations.md`: expand, migrate, contract, with deploy order and rollback written in the doc.
+- Section 8 (rollout and risks) is checked against `security.md`, `performance.md`, `observability.md`, and, for UI, `accessibility.md`. Name the items that apply; skip the rest.
+
+**Challenge.** Before showing the doc, run the `workflow:challenge` skill on it in document mode (five fresh reviewers: simplicity, comprehension, design risk, codebase fit, implementation readiness). Contract: the PRD requirements, the confirmed Decisions, the quality bar, and `CLAUDE.md` rules. Fix valid findings; put findings that need a decision to the developer.
 
 **Save** to `<solution docs folder>/YYYY-MM-DD-<feature-slug>.md` (default `docs/solutions/`).
 
-**Test case sheet.** Generate test cases from the PRD into `<same folder>/YYYY-MM-DD-<feature-slug>-test-cases.xlsx`, using `testsheet.py` (see "Test sheet tool" below).
-- Every requirement ID gets at least one positive case, plus negative, edge, permission, and validation cases where they apply.
-- Each case: `id` (`TC-001`...), `requirement`, `title`, `type` (Functional, Negative, Edge, UI, API, DB, Security, Performance), `priority` (P0 blocks release, P1, P2), `preconditions`, `steps` (list), `test_data`, `expected`.
-- Expected results must be observable and specific (status code, message, row in a table, element on screen), not "works correctly".
-- Cases come from the PRD's behaviour, not from the planned code. Link the sheet in section 7 of the doc.
+**Test case sheet.** Have the independent tester write the cases, so they test what the PRD asks for and not what the doc designs. Start the `workflow:tester` agent in **write-cases** mode with the PRD, the confirmed Decisions from clarify, `CLAUDE.md`, and the sheet path `<same folder>/YYYY-MM-DD-<feature-slug>-test-cases.xlsx`. Do not give it the solution doc. Then check its coverage: every requirement ID has cases. Link the sheet in section 7 of the doc.
+
+**Starting the tester.** Use the Agent tool with `subagent_type: workflow:tester` (never a `fork`; if it is unavailable, a `general-purpose` agent told to follow this plugin's `agents/tester.md`). Its prompt contains only: the mode, the repository path, the absolute paths of its input files, the sheet path, the case IDs (run mode), and the test sheet command `python3 <absolute path of this skill's directory>/testsheet.py`. Never include the conversation, what was built or why, the solution doc, claims that something works, or what you expect the results to be.
 
 Report the doc and sheet paths, a 3-line summary, the number of test cases, and blocking open questions. Wait for approval of both.
+
+## 1. Diagnose (bugs)
+
+Run the `workflow:diagnose` skill, phases 1-4: a command that reproduces the bug, then the confirmed root cause. No permanent code changes yet.
+
+Then have the `workflow:tester` agent write the test sheet `<solution docs folder>/YYYY-MM-DD-<bug-slug>-test-cases.xlsx` in **write-cases** mode, from the bug report and the reproduce command only (see **Starting the tester** in stage 1): the reported bug as a P0 case, plus nearby behaviour that must keep working. A solution doc is needed only if the fix changes APIs, the database, or several modules; then write it as for features.
+
+If the root cause or fix touches shared code, data, or anything hard to undo, run the `workflow:challenge` skill in claim mode on the root cause and proposed fix.
+
+Report the reproduce command, the root cause, the proposed fix, and the sheet path. Wait for approval.
 
 ## 2. Start
 
 1. Run `git status --porcelain` and `git branch --show-current`. Mention a dirty tree.
-2. Suggest a branch name as text only. Default format `<type>/<TICKET-ID>-<slug>`:
-   - `type`: `feat`, `fix`, `chore`, `refactor`, `docs`, or `test`.
-   - `TICKET-ID` as given (e.g. `ABC-123`); omit the segment if there is no ticket.
-   - `slug`: 3-5 lowercase words, hyphen-separated.
-3. If the current branch is protected, ask the developer to create the branch, and wait until they confirm.
-4. If there is no solution doc, read the code the task touches and give a short plan: files to change, approach, how it will be tested.
+2. **Always ask the developer for the branch name.** Do not propose or invent one. When asking, show the project's naming format from the **Workflow** section of `CLAUDE.md` (default `<type>/<TICKET-ID>-<slug>`) so they can follow it.
+3. Ask them to create and switch to that branch themselves, and wait until they confirm. Then check with `git branch --show-current` that it is the current branch and is not protected.
+4. If the name does not follow the project's format, say so once; the developer decides.
+5. If there is no solution doc, read the code the task touches and give a short plan: files to change, approach, how it will be tested.
 
 ## 3. Build
 
-- Follow the solution doc's build order (or the stage 2 plan), one task at a time.
-- Follow the patterns the doc cites. Stay within its scope. If the plan turns out wrong, say so and update the doc before changing direction.
-- After each task, run the relevant lint and tests from `CLAUDE.md`, and fix failures before moving on.
-- Add or update automated tests for the sheet's test cases where the project's test setup allows. Record each in the sheet's `automated_test` column (`path/to/test::name`).
-- When done, list what was built against the requirement IDs and anything left out.
+Run the `workflow:build` skill with the solution doc (or the stage 2 plan): thin vertical slices, each tested, working, and **approved by the developer** before the next; a new module starts from a skeleton copied from the closest existing module and ends with its `CLAUDE.md`.
+
+- For a bug, run phases 5-6 of `workflow:diagnose` instead: fix the root cause, add the regression test, remove temporary code.
+- Automate the sheet's test cases where the project's test setup allows, and record each in the `automated_test` column (`path/to/test::name`).
 
 ## 4. Test
 
-Run every test case in the sheet and record the result. If there is no sheet (solution stage skipped), first generate one from the PRD, ticket, or stage 2 plan as in stage 1.
+The independent `workflow:tester` agent runs the cases and records the results; you fix. **You never write `status` or `actual` in the sheet yourself**: only the tester marks results, so the code's builder never grades its own work. If there is no sheet (solution stage skipped), first have the tester write one (write-cases mode) from the PRD, ticket, or stage 2 plan.
 
-**How to verify each case,** most reliable first:
-1. Automated test: run it (single-test command from `CLAUDE.md`) and use its result.
-2. API: call the endpoint on the local dev server (`curl`) and compare status and body with the expected result.
-3. UI: use the Playwright MCP tools against the local dev server: follow the steps, check the expected element or text, take a screenshot for evidence.
-4. DB: query the local database to confirm the expected rows or values.
+**Loop:**
+1. Start the tester in **run** mode (see **Starting the tester** in stage 1) for every `Not run` or `Retrying` case. It verifies each case (automated test it has read, API call, Playwright in the browser, read-only database query) and records Passed with evidence, Failed with what happened, or Human review needed with what a person should check.
+2. Read its report and the sheet (`testsheet.py dump`).
+3. For each **Retrying** case (failed attempt 1 or 2): reproduce the failure with a fast command, fix the root cause, not the symptom (stage 3 rules apply), and use `workflow:diagnose` phases 1-4 if the cause is not obvious.
+4. Start the tester again for the fixed cases, plus already Passed cases the fix could affect.
+5. Repeat until no case is `Not run` or `Retrying`. A case that fails its third attempt becomes **Failed**: stop fixing it and report what was tried on each attempt and your best guess at the cause.
 
-**Status rules:**
-- **Passed** - you ran it and the actual result matches the expected result. Evidence is required: the test name and command, the response, or the screenshot path. No evidence, no Passed.
-- **Failed** - the actual result differs. Record it as `"status": "Failed"` with what happened. Each case gets **3 attempts**; the tool counts them:
-  - Attempts 1 and 2: the tool marks the case **Retrying**. Find the root cause, fix it (stage 3 rules apply), and re-run the case.
-  - Attempt 3: the tool marks it **Failed**. Stop fixing that case. Report what was tried on each attempt and your best guess at the cause.
-  - After a fix, re-run the already Passed cases the fix could affect.
-  - If the developer fixes something and asks for a fresh round, pass `"attempts": 0` with the next result.
-- **Human review needed** - you cannot verify it reliably yourself. Say exactly what the person should check. Use this for: visual design and UX judgement, wording and copy, third-party systems (payments, email, SMS, external APIs), real devices or browsers you cannot run, production-like data or credentials you do not have, requirements with open questions, and anything only partly verified.
+If the developer fixes something and asks for a fresh round, pass `"attempts": 0` for those cases before the next tester run.
 
-Never test against production or shared environments, and never use real customer data. Record results in the sheet as you go, not at the end. Stage 4 ends only when no case is `Not run` or `Retrying`.
+If the tester reports an environment problem (app will not start, no seed data) or questions an expected result, bring it to the developer; do not change expected results yourself.
+
+Before finishing, go through `definition-of-done.md` and run the `workflow:quality-bar` skill in `check` mode. Report anything not met.
 
 When done, report the counts (Passed, Failed, Human review needed) with attempts used and list the Failed and Human review cases. Move on only when no P0 case is Failed, or the developer explicitly accepts the failures.
+
+**Red flags**
+
+| If you think... | Then... |
+|-----------------|---------|
+| "I can see it works, I'll mark it Passed myself" | Only the tester records results. Run the tester. |
+| "The unit tests pass, so the case passes" | The tester checks the case's expected result itself, end to end. |
+| "It probably works, I'll mark it Passed" | No evidence, no Passed. Run it or mark Human review needed. |
+| "This failure is flaky, re-run until green" | Flaky is a bug. Reproduce it and find the cause. |
+| "I'll loosen the expected result to match" | The expected result comes from the PRD. Fix the code or raise it as a question. |
+| "The quality bar is too strict for this change" | Only the developer can grant an exception, recorded with owner and expiry. |
 
 ## 5. Review
 
 Run the `workflow:review` skill (Skill tool) on the branch's changes, including uncommitted work.
 
 - Fix every **Critical** and **Major** finding (stage 3 rules apply). Show the developer the Minor findings and Questions, and fix the ones they choose.
-- After fixes, re-run the test cases the fixes could affect (stage 4 rules and attempt limits apply), then review the changed code again.
+- After fixes, have the `workflow:tester` agent re-run the test cases the fixes could affect (stage 4 loop and attempt limits apply), then review the changed code again.
 - Move on when the verdict is `Approve` or `Approve with minor fixes`, or the developer explicitly accepts the remaining findings.
 
 ## 6. Commit
 
-1. Review `git status` and `git diff`. Group changes; propose separate commits for unrelated concerns.
+1. Review `git status` and `git diff`. Group changes; propose one commit per build slice where slices are independent, and separate commits for unrelated concerns.
 2. Run lint and tests from `CLAUDE.md`. If they fail, fix or stop and report.
 3. Stage files explicitly by path. No `git add -A` or `git add .`. Never stage secrets, `.env*` files, build output, or large binaries.
 4. Default message format:
@@ -126,44 +147,13 @@ Run the `workflow:review` skill (Skill tool) on the branch's changes, including 
    Refs: <TICKET-ID>
    ```
    - `type`: `feat`, `fix`, `chore`, `refactor`, `docs`, `test`, `perf`, `ci`. `scope`: module or area; omit if global.
-   - Take `TICKET-ID` from the branch name; omit the footer if there is none.
+   - Take `TICKET-ID` from the branch name the developer gave, or ask; omit the footer if there is none.
    - Add `BREAKING CHANGE: <what>` in the footer for breaking changes.
 5. Commit, then show `git log -1 --stat`.
 
 ## 7. PR
 
-1. Confirm the branch is not protected and the tree is clean (otherwise go back to stage 6).
-2. Find the default branch (`git symbolic-ref --short refs/remotes/origin/HEAD`). Run `git fetch origin` and `git rev-list --count HEAD..origin/<default>`. If behind, tell the developer by how many commits. Do not rebase or merge.
-3. Run lint and tests. Do not open the PR if they fail. Read the test sheet with `testsheet.py dump`, including statuses and notes reviewers changed in Excel. Do not open the PR with `Not run` or `Retrying` cases, or Failed P0 cases, unless the developer accepts them.
-4. If code changed since the stage 5 review (or stage 5 was skipped), run the `workflow:review` skill again on the branch. Do not open the PR with open Critical or Major findings unless the developer accepts them.
-5. `git push -u origin HEAD`.
-6. `gh pr create` (add `--draft` if requested):
-   - Title: same format as the main commit.
-   - Body: the repo's PR template if it has one. Otherwise:
-     ```
-     ## Summary
-     <what and why, 1-3 sentences>
-
-     ## Ticket
-     <TICKET-ID or link, or "none">
-
-     ## Solution doc
-     <path, or "none">
-
-     ## Changes
-     - <bullet per notable change>
-
-     ## Testing
-     Test cases: <sheet path> - <n> passed, <n> failed, <n> need human review
-     <failed cases and accepted reasons; human review cases and what to check>
-
-     ## Code review
-     <verdict; findings fixed; Minor findings and Questions left open>
-
-     ## Notes for reviewers
-     <risky areas, follow-ups, screenshots for UI changes>
-     ```
-7. Print the PR URL.
+Run the `workflow:pr` skill (add `--draft` if requested). It runs the pre-flight checks, pushes, and opens the PR in the company format.
 
 ## Test sheet tool
 
@@ -176,6 +166,7 @@ EOF
 python3 <skill dir>/testsheet.py dump <sheet.xlsx>
 ```
 
+- Only the `workflow:tester` agent records results (`status`, `actual`). The builder may set `automated_test` and, on the developer's request, `attempts: 0`.
 - `write` adds or updates rows by `id` and only changes the fields you pass, so reviewer notes are kept. Recording a result: `{"id": "TC-001", "status": "Passed", "actual": "<evidence>"}`; `last_run` and `attempts` are set automatically, and a third failure turns `Retrying` into `Failed`.
 - `dump` prints status counts and every row as JSON.
 - Never edit the `.xlsx` any other way. Reviewers edit it in Excel: the Status column is a dropdown and rows are coloured by status.

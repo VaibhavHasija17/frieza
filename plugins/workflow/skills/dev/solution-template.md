@@ -65,7 +65,7 @@ Errors: `400` invalid input · `403` not allowed · `409` <conflict case>
 
 - Add `<column>` (`<type>`, <nullable/default>) - <why>
 
-**Migration:** `<migration file path>`. <Backfill needed? Can it be rolled back? Any risk on large tables?>
+**Migration:** `<migration file path>`. <Expand / migrate / contract steps if anything in use changes. Backfill needed? Rollback? Locks on large tables?>
 
 ## 6. Code changes
 

@@ -16,7 +16,7 @@ Generated project files (`CLAUDE.md`, module `CLAUDE.md`, `.claude/settings.json
 - **Never regenerate a committed file.** If it exists, only edit it, and only where the code it describes has changed (see the stamp rule below).
 - **Stamp generated files.** End each generated `CLAUDE.md` with `<!-- workflow:setup <short commit sha of HEAD> -->`. On a re-run, check `git diff --quiet <sha> HEAD -- <folder> ':!<folder>/CLAUDE.md'`:
   - No changes: skip the file.
-  - Changes: edit only the lines those changes made wrong, then update the stamp. Do not reword lines that are still accurate.
+  - Changes: run the `workflow:drift` skill on that file to find the lines those changes made wrong, edit only those, then update the stamp. Do not reword lines that are still accurate.
   - Sha not found (shallow clone or rewritten history): review the file but make minimal edits only.
 - **Repo facts only.** Committed files contain only what comes from the repo itself, so every machine sees the same input. Never write absolute paths, usernames, OS-specific commands, locally installed tool versions, or ports from local `.env` files. Machine-specific notes go in `CLAUDE.local.md`, which must be in `.gitignore`.
 - **Fixed shape.** Follow the templates exactly: same sections, same order. Detect modules with the rule in step 2 and process them sorted by path. Sort lists of files alphabetically. Sort new `permissions.allow` entries alphabetically; do not reformat existing entries.
@@ -33,7 +33,6 @@ Required user-level plugins (active in every project on the machine):
 | Plugin | Marketplace to add if missing |
 |--------|-------------------------------|
 | `ponytail@ponytail` | `DietrichGebert/ponytail` |
-| `claude-mem@thedotmack` | `thedotmack/claude-mem` |
 | `playwright@claude-plugins-official` | built in |
 | `claude-md-management@claude-plugins-official` | built in |
 | `security-guidance@claude-plugins-official` | built in |
@@ -56,11 +55,32 @@ Claude Code ignores telemetry variables in a project's `.claude/settings.json`, 
 | `OTEL_METRICS_INCLUDE_REPOSITORY` | `true` (tags every metric with the git repo) |
 | `OTEL_RESOURCE_ATTRIBUTES` | `team.id=<team>`: ask the developer for their team once; lowercase, no spaces |
 | `OTEL_SERVICE_NAME` | `service_name` from `telemetry.json`, if set |
-| `OTEL_EXPORTER_OTLP_HEADERS` | Only if `needs_token` is true: `Authorization=<auth_scheme> <token>`. Use `token` from `telemetry.json` if set; otherwise ask the developer for the ingest token (for Grafana Cloud: the base64 `instanceID:token` value). Never write it anywhere except the user settings file. |
+| `OTEL_EXPORTER_OTLP_HEADERS` | Only if `needs_token` is true: `Authorization=<auth_scheme> <token>`, with the token the developer gives you (see below). |
 
 Never set `OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_ASSISTANT_RESPONSES`, `OTEL_LOG_TOOL_DETAILS`, `OTEL_LOG_TOOL_CONTENT`, or `OTEL_LOG_RAW_API_BODIES`: prompts, code, and commands stay private.
 
 If managed settings already set these variables, leave them alone.
+
+**The access token.** If `needs_token` is true, check whether `OTEL_EXPORTER_OTLP_HEADERS` is already set (test only that the key exists, see below). If it is, ask whether to keep it or replace it. If it is not, ask the developer:
+
+> Usage tracking needs an access token. Get it from your team lead or the team password manager and paste it here, and I will save it to your `~/.claude/settings.json`. Or reply "skip" to add it later yourself.
+
+When they paste it:
+- Save it straight away with a command that writes it into the `env` block and prints nothing back:
+  ```sh
+  python3 - <<'EOF'
+  import json, os
+  path = os.path.expanduser("~/.claude/settings.json")
+  data = json.load(open(path)) if os.path.exists(path) else {}
+  data.setdefault("env", {})["OTEL_EXPORTER_OTLP_HEADERS"] = "Authorization=<auth_scheme> <token>"
+  json.dump(data, open(path, "w"), indent=2)
+  EOF
+  ```
+- Then reply only "Token saved". Never repeat the token, show it, summarise it, or include it in any report.
+- Never write it anywhere else: not `telemetry.json`, not project files, not `CLAUDE.md`, not shell profiles, not a commit.
+- If the developer replies "skip", tell them the line to add later themselves: `"OTEL_EXPORTER_OTLP_HEADERS": "Authorization=<auth_scheme> <your token>"` in the `env` block of `~/.claude/settings.json`. Everything else works without it; usage is just not sent.
+
+To check it is present without exposing it, only test whether the key exists (for example `python3 -c "import json,os; print('OTEL_EXPORTER_OTLP_HEADERS' in json.load(open(os.path.expanduser('~/.claude/settings.json'))).get('env', {}))"`).
 
 ## 2. Inspect the project
 
@@ -111,7 +131,7 @@ Wait for the developer to confirm or adjust. Install system tools only if they e
 
 **Machine:** add missing marketplaces (`claude plugin marketplace add <repo>`), then install missing plugins (`claude plugin install <plugin> --scope user`). If one fails, report it and continue.
 
-**Usage tracking:** merge the variables from step 1 into the `env` block of `~/.claude/settings.json`. Keep every other key; replace only these variables.
+**Usage tracking:** merge the variables from step 1 into the `env` block of `~/.claude/settings.json`. Keep every other key, including an existing `OTEL_EXPORTER_OTLP_HEADERS`; replace only the variables you set.
 
 **`.claude/settings.json`** (shared, committed): merge, keep every existing key, do not duplicate entries.
 ```json
@@ -124,6 +144,8 @@ Wait for the developer to confirm or adjust. Install system tools only if they e
   "permissions": { "allow": ["<verified commands from step 3>"] }
 }
 ```
+
+**Quality bar:** if the project has no `docs/quality-bar.md`, offer to create one with the `workflow:quality-bar` skill. Skip if the developer declines.
 
 **CLAUDE.md:**
 - **Missing:** create it from `CLAUDE.md.template` in this skill's directory. Fill every section from what you found. Write `<TODO>` where you could not tell; do not guess.
@@ -142,6 +164,6 @@ Wait for the developer to confirm or adjust. Install system tools only if they e
 - Machine: installed now, already present, failed; tools still missing; usage tracking on (endpoint, team) or skipped.
 - Project: files created, changed, or skipped as up to date, and each adaptation made with its reason.
 - Next steps:
-  1. Restart Claude Code so new plugins and settings load. Usage data then appears on the dashboard within a few minutes (metric `claude_code.session.count`).
-  2. Review, then commit `.claude/settings.json`, `CLAUDE.md`, and the module `CLAUDE.md` files.
-  3. claude-mem asks you to sign in and choose a memory provider. Follow the company policy on which provider is allowed for company code.
+  1. If usage tracking needs a token and the developer skipped it: add it later, as described above.
+  2. Restart Claude Code so new plugins and settings load. Usage data then appears on the dashboard within a few minutes (metric `claude_code.session.count`).
+  3. Review, then commit `.claude/settings.json`, `CLAUDE.md`, and the module `CLAUDE.md` files.
