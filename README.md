@@ -77,31 +77,6 @@ Machine-level plugins installed by `/workflow:setup` (user scope, active in ever
 
 Developers can switch these settings off on their own machine. To enforce them, an admin can put the same `env` values in Claude Code managed settings instead.
 
-## Credits
-
-Adapted pieces are rewritten for this workflow, not copied.
-
-| Part of this workflow | Inspired by | Licence |
-|-----------------------|-------------|---------|
-| `/workflow:clarify` | grill-me, grilling, grill-with-docs in [mattpocock/skills](https://github.com/mattpocock/skills) | MIT |
-| `/workflow:diagnose` | diagnosing-bugs in [mattpocock/skills](https://github.com/mattpocock/skills) | MIT |
-| `/workflow:review` (standards and spec reviewers) | code-review in [mattpocock/skills](https://github.com/mattpocock/skills); code smells from Martin Fowler, *Refactoring*, chapter 3 | MIT |
-| `/workflow:pr` description format | pr in [mattpocock/skills](https://github.com/mattpocock/skills), based on Dex Horthy's [show-me](https://github.com/humanlayer/skills) | MIT |
-| `/workflow:build` | incremental-implementation in [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) | MIT |
-| `/workflow:challenge`, single claims | doubt-driven-development in [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) | MIT |
-| `/workflow:challenge`, documents | goldfish reviewers in Google's [elephant-goldfish-model](https://github.com/google/elephant-goldfish-model) | Apache-2.0 |
-| `/workflow:quality-bar` | constraint-driven-development in [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) | MIT |
-| `/workflow:drift` | egm-drift-report in Google's [elephant-goldfish-model](https://github.com/google/elephant-goldfish-model) | Apache-2.0 |
-| Checklists, migration rules, red-flag tables | references, deprecation-and-migration, "common rationalizations" in [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) | MIT |
-| Review agents | agents in [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills); isolation idea from [elephant-goldfish-model](https://github.com/google/elephant-goldfish-model) | MIT, Apache-2.0 |
-| Reviewer tone rules | [elephant-goldfish-model](https://github.com/google/elephant-goldfish-model) | Apache-2.0 |
-| `/workflow:setup`, `/workflow:dev`, solution doc template, test sheet and retries, tester agent, per-slice review, safety hook, module `CLAUDE.md` files | Original to this plugin | - |
-| Usage tracking | Claude Code's [OpenTelemetry support](https://code.claude.com/docs/en/monitoring-usage) and Anthropic's [monitoring guide](https://github.com/anthropics/claude-code-monitoring-guide) | - |
-
-Plugins installed by setup come from their own authors: [ponytail](https://github.com/DietrichGebert/ponytail), [Playwright MCP](https://github.com/microsoft/playwright-mcp), [claude-md-management and security-guidance](https://github.com/anthropics/claude-plugins-official), and [superpowers](https://github.com/obra/superpowers).
-
-A plain-English guide to the whole workflow is published as a page; ask the maintainer for the link.
-
 ## Change the workflow
 
 1. Edit files under `plugins/workflow/`. The plugin list lives in `skills/setup/SKILL.md`; the CLAUDE.md starting point in `skills/setup/CLAUDE.md.template`.
