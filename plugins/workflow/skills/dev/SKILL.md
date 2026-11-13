@@ -38,6 +38,13 @@ Turn the PRD into a technical solution document. No source code changes in this 
 
 **Clarify.** Run the `workflow:clarify` skill on the PRD. Skip it only if the developer says the PRD is complete. Its confirmed **Decisions** shape the doc; questions for other people go to the doc's **Open questions**. Do not invent product behaviour.
 
+**Read the design.** Find the screens for this feature:
+1. **Figma links in the PRD and the Figma tools are available and logged in:** load the `figma:figma-design-to-code` skill (the Figma plugin requires it), then read each linked frame's screenshot and structure.
+2. **Otherwise** (no Figma tools, not logged in, no links, or the linked frames do not show this feature): ask the developer: "I can't use the design from Figma. Can you share screenshots of the screens for this feature? File paths are best, so the tester can compare against them." Read what they give you.
+3. **No design at all:** say so, and design the APIs from the PRD and the codebase alone. Write "No design available" in the doc's Screen → data map.
+
+Store design references the developer gives as files in `<solution docs folder>/YYYY-MM-DD-<feature-slug>-design/` and link them in the doc. From the screens, build the **Screen → data map** (every list, column, filter, form field, button, and error or empty state, and the data or action behind it), then derive the APIs from it.
+
 **Analyse the codebase** (read `CLAUDE.md` first, and the module `CLAUDE.md` files of the areas involved). Establish, with file paths as evidence:
 - Stack and layering (e.g. route, controller, service, repository, model).
 - **Closest existing feature**, traced end to end from entry point to storage and tests. This is the pattern the solution follows.
@@ -54,6 +61,8 @@ For broad sweeps use an Explore subagent and keep only its conclusions. Before p
 - Each change names the existing file or pattern it follows (`path/to/file.ts:42`).
 - Facts about current code come from code you read; anything inferred goes under **Assumptions**.
 - Contracts, not implementations: request/response examples, columns, signatures. No full code.
+- APIs come from the Screen → data map when designs exist: reuse existing endpoints first; only new or changed ones go in section 4. Screens show visible data only: IDs, permissions, and business rules come from the PRD and the code.
+- **Every API, new or changed, has full request and response bodies**: every field with type, required or optional, and rules; realistic example values; the success response and each error response with its status code and body. Follow the project's existing response and error format. Changed endpoints show before and after.
 - Every requirement ID appears in section 2 and in at least one test.
 - Prefer extending existing code over adding modules; say why when something new is needed.
 - Ready to build: no design decision is left to whoever implements it. Every API shape, data type, error-handling strategy, and library choice is decided in the doc or listed as an open question.
@@ -66,7 +75,9 @@ For broad sweeps use an Explore subagent and keep only its conclusions. Before p
 
 **Test case sheet.** Have the independent tester write the cases, so they test what the PRD asks for and not what the doc designs. Start the `workflow:tester` agent in **write-cases** mode with the PRD, the confirmed Decisions from clarify, `CLAUDE.md`, and the sheet path `<same folder>/YYYY-MM-DD-<feature-slug>-test-cases.xlsx`. Do not give it the solution doc. Then check its coverage: every requirement ID has cases, and features with a UI or API flow have `E2E` journey cases. Link the sheet in section 7 of the doc.
 
-**Starting the tester.** Use the Agent tool with `subagent_type: workflow:tester` (never a `fork`; if it is unavailable, a `general-purpose` agent told to follow this plugin's `agents/tester.md`). Its prompt contains only: the mode, the repository path, the absolute paths of its input files, the sheet path, the case IDs (run mode), and the test sheet command `python3 <absolute path of this skill's directory>/testsheet.py`. Never include the conversation, what was built or why, the solution doc, claims that something works, or what you expect the results to be.
+**Starting the tester.** Use the Agent tool with `subagent_type: workflow:tester` (never a `fork`; if it is unavailable, a `general-purpose` agent told to follow this plugin's `agents/tester.md`). Its prompt contains only: the mode, the repository path, the absolute paths of its input files (including design screenshots or Figma links, if any), the sheet path, the case IDs (run mode), and the test sheet command `python3 <absolute path of this skill's directory>/testsheet.py`. Never include the conversation, what was built or why, the solution doc, claims that something works, or what you expect the results to be.
+
+**Confirm API contracts.** Before asking for approval, show the developer each endpoint's request and response bodies, one endpoint at a time, and ask them to confirm or correct it. Apply corrections, then set `Confirmed by developer: yes` on that endpoint. Do not ask for doc approval while any endpoint is `not yet`.
 
 Report the doc and sheet paths, a 3-line summary, the number of test cases, and blocking open questions. Wait for approval of both.
 
@@ -93,6 +104,7 @@ Report the reproduce command, the root cause, the proposed fix, and the sheet pa
 Run the `workflow:build` skill with the solution doc (or the stage 2 plan): thin vertical slices, each tested, working, and **approved by the developer** before the next; a new module starts from a skeleton copied from the closest existing module and ends with its `CLAUDE.md`.
 
 - For a bug, run phases 5-6 of `workflow:diagnose` instead: fix the root cause, add the regression test, remove temporary code.
+- **UI from a design:** one screen per slice. With Figma available, use the `figma:figma-design-to-code` skill. Always build with the project's existing components and design tokens; never hard-code colours, spacing, or fonts copied from the design.
 - Automate the sheet's test cases where the project's test setup allows, and record each in the `automated_test` column (`path/to/test::name`).
 
 ## 4. Test

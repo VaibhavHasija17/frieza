@@ -51,6 +51,7 @@ Machine-level plugins installed by `/workflow:setup` (user scope, active in ever
 | [claude-md-management](https://github.com/anthropics/claude-plugins-official) | Audits and updates CLAUDE.md files with learnings from sessions. |
 | [security-guidance](https://github.com/anthropics/claude-plugins-official) | Warns about insecure code patterns while editing. |
 | [superpowers](https://github.com/obra/superpowers) | Brainstorming, planning, TDD, debugging, and code-review workflows. |
+| [figma](https://github.com/anthropics/claude-plugins-official) | Only for projects with a UI. Reads Figma designs (screens, components, tokens) for the solution doc, building, and testing. Each developer logs in to Figma once. |
 
 ## Usage tracking
 

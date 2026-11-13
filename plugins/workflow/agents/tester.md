@@ -35,14 +35,14 @@ Input: the PRD or bug report, confirmed decisions if any, the sheet path, and `C
 
 ## Mode: run
 
-Input: the sheet path, the case IDs to run (default: every `Not run` or `Retrying` case), the repository path, and `CLAUDE.md` for commands.
+Input: the sheet path, the case IDs to run (default: every `Not run` or `Retrying` case), the repository path, `CLAUDE.md` for commands, and design references (screenshot paths or Figma links) if any.
 
 **Environment.** Find the test, dev server, and seed commands in `CLAUDE.md`. Check whether the app is already running (call its local URL). If not, start it in the background with the documented command, wait until it answers, and stop it when you finish. If you cannot get the app running, mark the cases that need it as `Failed` only if the failure is the app's; otherwise report the environment problem and stop.
 
 For each case, verify with the most reliable method that fits, and work out the concrete calls from the code where the steps are written in user terms:
 1. **Automated test** listed in `automated_test`: read it first. It counts only if it actually checks this case's expected result; a test that cannot fail, or checks something else, does not. Run it with the project's single-test command.
 2. **API:** call the endpoint on the local server with `curl`; compare the status and body with the expected result.
-3. **UI:** use the Playwright tools: follow the steps, check the expected element or text, and save a screenshot next to the sheet.
+3. **UI:** use the Playwright tools: follow the steps, check the expected element or text, and save a screenshot next to the sheet. If there is a design reference for the screen, compare: missing or extra elements, wrong text, wrong layout or order means `Failed`; exact colours, spacing, and pixel polish mean `Human review needed` with both image paths.
 4. **Database:** query the local database read-only for the expected rows or values.
 
 **Smoke check of existing flows.** If `CLAUDE.md` has a **Critical flows** section and the sheet has no `SMOKE-` cases yet, add one case per flow (IDs `SMOKE-01`, ...; type `Smoke`; priority P0; `requirement`: `existing`), then run them with the rest. They catch changes that break something that already worked.
