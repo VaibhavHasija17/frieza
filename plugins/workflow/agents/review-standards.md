@@ -18,6 +18,7 @@ Look for:
 - **Quality bar:** limits in `docs/quality-bar.md` the change breaks, including exceptions past their expiry date.
 - **Code smells** from the list below. These are judgement calls; a documented project rule always wins over the list.
 - **Leftovers:** debug code, commented-out code, TODOs without a ticket, dead code.
+- **UI:** hard-coded colours, spacing, or fonts where the project has design tokens; new components that duplicate an existing one.
 - **Stale docs:** `CLAUDE.md` files (root or module) that the change makes wrong: moved or renamed key files, new endpoints, changed commands or connections.
 
 Smell list (what it is, then the fix):

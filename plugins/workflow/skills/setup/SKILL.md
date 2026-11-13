@@ -37,6 +37,7 @@ Required user-level plugins (active in every project on the machine):
 | `claude-md-management@claude-plugins-official` | built in |
 | `security-guidance@claude-plugins-official` | built in |
 | `superpowers@claude-plugins-official` | built in |
+| `figma@claude-plugins-official` | built in (only if the project has a UI) |
 
 ### Usage tracking
 
@@ -98,7 +99,7 @@ Work out each of these from the repo, not from assumptions. Note the evidence (f
   - PR template: `.github/pull_request_template.md` or similar.
 - **Data and APIs:** DB engine, ORM, migration tool and folder, API style (REST, GraphQL, RPC).
 - **Docs:** where design docs live, if anywhere.
-- **Frontend:** whether there is a UI that Playwright can test, and its dev URL.
+- **Frontend:** whether there is a UI that Playwright can test, and its dev URL. If so, also the component library and design tokens file. Remind the developer to log in to Figma once (`/mcp` in Claude Code) if the team designs in Figma.
 - **Critical flows:** 3-5 existing user flows that must never break (sign-in, checkout, ...). Propose them from routes and tests; the developer confirms them in step 4. They go in `CLAUDE.md` **Critical flows**.
 - **Modules:** the directories that each own one feature, domain, or package (e.g. `src/modules/*`, `apps/*`, `packages/*`, Django apps, Laravel modules, Go packages). Skip generated code, vendored code, build output, test-only, and config-only folders.
 - **Existing AI config:** `CLAUDE.md` (root and nested), `AGENTS.md`, `.cursorrules`, `.cursor/rules`, `.github/copilot-instructions.md`, `.claude/settings.json`, `.claude/settings.local.json`.

@@ -40,6 +40,7 @@ Company standard (plugin `workflow@dev-workflow`). The `/workflow:*` skills foll
 - PR description: `<path to PR template, or "standard /workflow:dev body">`
 - Solution docs: `<docs/solutions/>`
 - Quality bar: `<docs/quality-bar.md, or "none">`
+- Design system: `<component library folder and tokens file, or "none">`
 
 `/workflow:dev path/to/prd.md` runs the whole flow, pausing for approval after each stage:
 clarify → solution doc and test cases (or diagnose for a bug) → branch check and plan → build → test → review → commit → PR.
