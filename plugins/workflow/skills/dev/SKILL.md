@@ -14,7 +14,7 @@ Stages run in order: **1 Solution (features) or Diagnose (bugs) → 2 Start → 
 
 **Project conventions:** the **Workflow** section of `CLAUDE.md` overrides the defaults in this skill (branch naming, protected branches, commit format, PR template, solution docs folder). So does the repo's commitlint config.
 
-**Never:** create, switch, rebase, or merge branches; commit with `--no-verify`; push to a protected branch (default `main`, `master`, `develop`).
+**Never:** name a branch yourself; rebase or merge branches; commit with `--no-verify`; push to a protected branch (default `main`, `master`, `develop`).
 
 ## 0. Find where to start
 
@@ -100,8 +100,8 @@ Report the reproduce command, the root cause, the proposed fix, and the sheet pa
 
 1. Run `git status --porcelain` and `git branch --show-current`. Mention a dirty tree.
 2. **Always ask the developer for the branch name.** Do not propose or invent one. When asking, show the project's naming format from the **Workflow** section of `CLAUDE.md` (default `<type>/<TICKET-ID>-<slug>`) so they can follow it.
-3. Ask them to create and switch to that branch themselves, and wait until they confirm. Then check with `git branch --show-current` that it is the current branch and is not protected.
-4. If the name does not follow the project's format, say so once; the developer decides.
+3. If the name does not follow the project's format, say so once; the developer decides.
+4. Create it from the current branch with `git switch -c <name>`. If the **Workflow** section says to cut branches from a specific base and the current branch is not that base, ask which base to use first. If the branch already exists, ask before switching to it. If the change spans several repositories, create the same branch in each one. Then check with `git branch --show-current` that it is the current branch and is not protected.
 5. If there is no solution doc, read the code the task touches and give a short plan: files to change, approach, how it will be tested.
 
 ## 3. Build
