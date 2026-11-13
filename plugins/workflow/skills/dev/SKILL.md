@@ -129,7 +129,8 @@ When done, report the counts (Passed, Failed, Human review needed) with attempts
 
 Run the `workflow:review` skill (Skill tool) on the branch's changes, including uncommitted work.
 
-- Fix every **Critical** and **Major** finding (stage 3 rules apply). Show the developer the Minor findings and Questions, and fix the ones they choose.
+- Fix every **Critical** and **Major** finding (stage 3 rules apply), except security findings. Show the developer the Minor findings and Questions, and fix the ones they choose.
+- **Security findings are the developer's call.** Show each `[Security]` finding and ask whether to fix it. Fix only the ones they choose; note the others as "not fixed, developer's decision".
 - After fixes, have the `workflow:tester` agent re-run the test cases the fixes could affect (stage 4 loop and attempt limits apply), then review the changed code again.
 - Move on when the verdict is `Approve` or `Approve with minor fixes`, or the developer explicitly accepts the remaining findings.
 

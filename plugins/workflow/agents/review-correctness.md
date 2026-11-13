@@ -25,6 +25,7 @@ Use the checklists at the path you were given: `security.md` and `performance.md
 
 - Lead with problems. No praise, no summary of what the code does.
 - Every finding needs a concrete scenario: an input or state, and the wrong result it produces. If you cannot construct one, leave it out or mark it **Question**.
+- A security finding must name all three: **who** can do it (e.g. any signed-in user, an anonymous caller), **what** they reach (e.g. another customer's invoices), and **the outcome** (read, change, delete, run code). Missing one means it is not a finding yet.
 - Check whether something elsewhere already handles the problem before reporting it.
 - Skip formatting and style that a linter enforces.
 
@@ -38,4 +39,6 @@ Under 400 words. Most severe first:
   Fix: <specific change>
 ```
 
-Severities: **Critical** (wrong results, security hole, data loss), **Major** (should fix before merge), **Minor** (worth fixing), **Question** (needs the author). If you find nothing significant, say so in one line.
+Tag every security finding with `[Security]` after the severity, e.g. `[Major][Security]`, so the developer can decide on it separately.
+
+Severities: **Critical** (wrong results, security hole, data loss), **Major** (should fix before merge), **Minor** (worth fixing), **Question** (needs the author), **Needs validation** (real only if something outside the code is true, such as production config or a proxy setting; say exactly what to check). If you find nothing significant, say so in one line.

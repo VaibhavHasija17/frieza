@@ -71,7 +71,10 @@ Keep the three axes separate, so a pass on one cannot hide a failure on another.
 - **Major** - should fix before merge: missing tests for requirements, breaking API changes, performance problems at expected load, rule breaks that will spread.
 - **Minor** - worth fixing, not blocking (most smells).
 - **Question** - needs the author's input.
+- **Needs validation** - a real problem only if something outside the code is true (production config, infrastructure, a third-party setting). Say exactly what someone should check. Does not block on its own.
 
-End with one line per axis (counts and worst finding), then the **Verdict**: `Changes requested` if any axis has a Critical or Major finding, `Approve with minor fixes` if only Minor findings or Questions remain, otherwise `Approve`.
+**Security findings are optional.** List findings tagged `[Security]` together under `## Security (your decision)`, with their severity. The developer decides, finding by finding, whether to fix each one. They never decide the verdict on their own.
+
+End with one line per axis (counts and worst finding), then the **Verdict**, ignoring `[Security]` findings: `Changes requested` if any axis has a Critical or Major finding, `Approve with minor fixes` if only Minor findings or Questions remain, otherwise `Approve`.
 
 For a PR target, offer to post the findings as a PR review (`gh pr review <n> --comment --body-file <file>`) and do it only if the developer agrees.

@@ -17,7 +17,7 @@ The **Workflow** section of `CLAUDE.md` overrides the defaults here (protected b
 3. Run the lint and tests from `CLAUDE.md`. Do not open the PR if they fail.
 4. If there is a test sheet for this work (solution docs folder, matching the branch's ticket or slug), read it with `python3 <this skill's directory>/../dev/testsheet.py dump <sheet>` (or `uv run` if `openpyxl` is missing). Do not open the PR with `Not run` or `Retrying` cases, or Failed P0 cases, unless the developer accepts them.
 5. If the project has `docs/quality-bar.md`, run the `workflow:quality-bar` skill in `check` mode. Do not open the PR with failures unless the developer accepts them.
-6. If the code was not reviewed since its last change, run the `workflow:review` skill. Do not open the PR with open Critical or Major findings unless the developer accepts them.
+6. If the code was not reviewed since its last change, run the `workflow:review` skill. Do not open the PR with open Critical or Major findings unless the developer accepts them. Security findings do not block; list the ones left unfixed.
 
 ## 2. Push and create
 
@@ -42,7 +42,7 @@ Test cases: <n> passed, <n> failed, <n> need human review
 <failed cases with accepted reasons; human review cases and what to check>
 
 ## Code review
-<verdict; what was fixed; Minor findings and Questions left open>
+<verdict; what was fixed; Minor findings and Questions left open; security findings the developer chose not to fix>
 
 ## Merge danger
 **Door:** one-way / two-way - <one line why>
