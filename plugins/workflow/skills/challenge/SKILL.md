@@ -28,7 +28,7 @@ Leave out your reasoning, the conversation, and why you believe it is right. Rev
 
 Each reviewer gets the artifact, the contract, access to the codebase, and this common instruction:
 
-> Find what is wrong; do not approve. Lead with problems. No praise, no restating the document. For each finding give: severity (Blocker, Major, or Minor), where (section or line), the concrete problem, and the code or contract line that shows it. If you find nothing significant, say so in one line. Under 400 words.
+> Find what is wrong; do not approve. Stay inside this change: judge only what it adds or changes and how that fits the code it touches. Ignore problems that already exist in the surrounding code, unless this change depends on them or makes them worse. Lead with problems. No praise, no restating the document. For each finding give: severity (Blocker, Major, or Minor), where (section or line), the concrete problem, and the code or contract line that shows it. If you find nothing significant, say so in one line. Under 400 words.
 
 **A. Adversary (claim mode)**
 > Try to prove this false. Check it against the contract and the actual code. Look for requirements it misses, false assumptions about existing code, ignored failure cases (errors, concurrency, partial failure, large data, old clients, rollback), and simpler approaches it overlooks.
@@ -52,7 +52,7 @@ Each reviewer gets the artifact, the contract, access to the codebase, and this 
 
 Check each finding yourself against the artifact and the code:
 - **Valid:** fix the artifact.
-- **Invalid:** note in one line why (misread, or already handled, with where).
+- **Invalid:** note in one line why (misread, already handled with where, or outside this change). Drop findings about existing code the change neither depends on nor touches; do not fix them or raise them.
 - **Needs a decision:** put it to the developer with your recommended answer.
 
 ## 4. Repeat or stop
