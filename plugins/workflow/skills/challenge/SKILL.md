@@ -55,10 +55,8 @@ Check each finding yourself against the artifact and the code:
 - **Invalid:** note in one line why (misread, already handled with where, or outside this change). Drop findings about existing code the change neither depends on nor touches; do not fix them or raise them.
 - **Needs a decision:** put it to the developer with your recommended answer.
 
-## 4. Repeat or stop
-
-Run another round on the fixed artifact if the last round had a Blocker or Major finding. In document mode, re-run only the reviewers whose areas changed. Stop when a round finds only Minor points, after 3 rounds, or when the developer says to stop.
+One round only. Do not re-run reviewers on the fixed artifact.
 
 ## Report
 
-What was challenged and in which mode; findings by outcome (fixed, rejected with reason, needs decision) and by reviewer; number of rounds. State problems plainly: no praise, no filler adjectives ("robust", "seamless").
+What was challenged and in which mode; findings by outcome (fixed, rejected with reason, needs decision) and by reviewer. State problems plainly: no praise, no filler adjectives ("robust", "seamless").
