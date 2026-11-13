@@ -1,5 +1,5 @@
 {
   "name": "workflow",
-  "version": "0.24.0",
+  "version": "0.25.0",
   "description": "Company-standard dev workflow: /workflow:setup, /workflow:dev (clarify, solution doc and test cases or bug diagnosis, build, test, review, commit, PR), plus /workflow:clarify, /workflow:diagnose, /workflow:build, /workflow:challenge, /workflow:quality-bar, /workflow:drift, /workflow:review, /workflow:pr, and shared checklists, plus guard hooks."
 }

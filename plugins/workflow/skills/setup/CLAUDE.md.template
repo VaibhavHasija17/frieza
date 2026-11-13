@@ -18,6 +18,13 @@
 
 - `<dir>/` - <what lives here>
 
+## Critical flows
+
+Existing user flows that must never break; the tester smoke-runs them in every Test stage.
+
+- <e.g. Sign in with email and password>
+- <e.g. Add item to cart and check out>
+
 ## Conventions
 
 - <Patterns visible in the code: layering, naming, error handling, where new code goes, test location.>

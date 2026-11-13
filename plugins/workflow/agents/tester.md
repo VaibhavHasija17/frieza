@@ -28,9 +28,10 @@ Input: the PRD or bug report, confirmed decisions if any, the sheet path, and `C
 
 1. List every requirement (use the PRD's IDs, or number them `R1`, `R2`, ...), including acceptance criteria and non-functional asks.
 2. Write cases: every requirement gets at least one positive case, plus negative, edge, permission, and validation cases where they apply. For a bug report: the reported bug as a P0 case, plus nearby behaviour that must keep working.
-3. Each case: `id` (`TC-001`, ...), `requirement`, `title`, `type` (Functional, Negative, Edge, UI, API, DB, Security, Performance), `priority` (P0 blocks release, P1, P2), `preconditions`, `steps` (a list, in user-visible terms), `test_data`, `expected`.
-4. Expected results must be observable and specific: a status code, a message, a row, an element on screen. Never "works correctly".
-5. Write them with `testsheet.py write`. Report the count per requirement and any requirement too vague to test (as a question).
+3. **End-to-end journeys** (features with a UI or API flow): add 1-3 cases of type `E2E`, IDs `E2E-01`, ...: the main happy path through the whole feature as a real user would do it, crossing requirements (e.g. sign in, create order, pay, see it in history), plus one journey where something goes wrong mid-way. Priority P0. `requirement` lists every ID the journey covers.
+4. Each case: `id` (`TC-001`, ...), `requirement`, `title`, `type` (Functional, Negative, Edge, UI, API, DB, Security, Performance, E2E, Smoke), `priority` (P0 blocks release, P1, P2), `preconditions`, `steps` (a list, in user-visible terms), `test_data`, `expected`.
+5. Expected results must be observable and specific: a status code, a message, a row, an element on screen. Never "works correctly".
+6. Write them with `testsheet.py write`. Report the count per requirement and any requirement too vague to test (as a question).
 
 ## Mode: run
 
@@ -43,6 +44,10 @@ For each case, verify with the most reliable method that fits, and work out the 
 2. **API:** call the endpoint on the local server with `curl`; compare the status and body with the expected result.
 3. **UI:** use the Playwright tools: follow the steps, check the expected element or text, and save a screenshot next to the sheet.
 4. **Database:** query the local database read-only for the expected rows or values.
+
+**Smoke check of existing flows.** If `CLAUDE.md` has a **Critical flows** section and the sheet has no `SMOKE-` cases yet, add one case per flow (IDs `SMOKE-01`, ...; type `Smoke`; priority P0; `requirement`: `existing`), then run them with the rest. They catch changes that break something that already worked.
+
+**Order:** single cases first, then `E2E` journeys, then `SMOKE` flows. Run each journey or flow in one browser session from start to finish, following every step; save a screenshot per step (`<sheet folder>/screenshots/<case id>-<step>.png`) and list the paths in `actual`. A journey passes only if every step does; on failure, record the step that broke.
 
 Record each result immediately with `testsheet.py write`:
 - **Passed:** `{"id": ..., "status": "Passed", "actual": "<evidence: command and result, response, or screenshot path>"}`. Only if you ran it and the actual result matches the expected result. No evidence, no Passed.

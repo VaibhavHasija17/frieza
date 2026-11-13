@@ -64,7 +64,7 @@ For broad sweeps use an Explore subagent and keep only its conclusions. Before p
 
 **Save** to `<solution docs folder>/YYYY-MM-DD-<feature-slug>.md` (default `docs/solutions/`).
 
-**Test case sheet.** Have the independent tester write the cases, so they test what the PRD asks for and not what the doc designs. Start the `workflow:tester` agent in **write-cases** mode with the PRD, the confirmed Decisions from clarify, `CLAUDE.md`, and the sheet path `<same folder>/YYYY-MM-DD-<feature-slug>-test-cases.xlsx`. Do not give it the solution doc. Then check its coverage: every requirement ID has cases. Link the sheet in section 7 of the doc.
+**Test case sheet.** Have the independent tester write the cases, so they test what the PRD asks for and not what the doc designs. Start the `workflow:tester` agent in **write-cases** mode with the PRD, the confirmed Decisions from clarify, `CLAUDE.md`, and the sheet path `<same folder>/YYYY-MM-DD-<feature-slug>-test-cases.xlsx`. Do not give it the solution doc. Then check its coverage: every requirement ID has cases, and features with a UI or API flow have `E2E` journey cases. Link the sheet in section 7 of the doc.
 
 **Starting the tester.** Use the Agent tool with `subagent_type: workflow:tester` (never a `fork`; if it is unavailable, a `general-purpose` agent told to follow this plugin's `agents/tester.md`). Its prompt contains only: the mode, the repository path, the absolute paths of its input files, the sheet path, the case IDs (run mode), and the test sheet command `python3 <absolute path of this skill's directory>/testsheet.py`. Never include the conversation, what was built or why, the solution doc, claims that something works, or what you expect the results to be.
 
