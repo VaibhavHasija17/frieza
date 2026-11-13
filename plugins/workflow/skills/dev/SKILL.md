@@ -39,9 +39,14 @@ Turn the PRD into a technical solution document. No source code changes in this 
 **Clarify.** Run the `workflow:clarify` skill on the PRD. Skip it only if the developer says the PRD is complete. Its confirmed **Decisions** shape the doc; questions for other people go to the doc's **Open questions**. Do not invent product behaviour.
 
 **Read the design.** Find the screens for this feature:
-1. **Figma links in the PRD and the Figma tools are available and logged in:** load the `figma:figma-design-to-code` skill (the Figma plugin requires it), then read each linked frame's screenshot and structure.
-2. **Otherwise** (no Figma tools, not logged in, no links, or the linked frames do not show this feature): ask the developer: "I can't use the design from Figma. Can you share screenshots of the screens for this feature? File paths are best, so the tester can compare against them." Read what they give you.
-3. **No design at all:** say so, and design the APIs from the PRD and the codebase alone. Write "No design available" in the doc's Screen → data map.
+1. **Figma links in the PRD and the Figma tools work:** load the `figma:figma-design-to-code` skill (the Figma plugin requires it), then read each linked frame's screenshot and structure.
+2. **Figma links exist but you cannot reach them:** ask the developer to give access, with the exact fix for what failed, then wait and retry once:
+   - Figma plugin not installed: run `claude plugin install figma@claude-plugins-official --scope user`, then restart Claude Code.
+   - Installed but not logged in: run `/mcp`, pick `figma`, and log in (you cannot log in for them).
+   - Logged in but the file is refused: ask the file owner or designer to share the file with their Figma account (view access is enough).
+   If they cannot, or it still fails after the retry, go to step 3.
+3. **Otherwise** (no links, access not possible, or the linked frames do not show this feature): ask the developer: "I can't use the design from Figma. Can you share screenshots of the screens for this feature? File paths are best, so the tester can compare against them." Read what they give you.
+4. **No design at all:** say so, and design the APIs from the PRD and the codebase alone. Write "No design available" in the doc's Screen → data map.
 
 Store design references the developer gives as files in `<solution docs folder>/YYYY-MM-DD-<feature-slug>-design/` and link them in the doc. From the screens, build the **Screen → data map** (every list, column, filter, form field, button, and error or empty state, and the data or action behind it), then derive the APIs from it.
 
