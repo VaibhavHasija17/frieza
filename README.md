@@ -52,6 +52,7 @@ Machine-level plugins installed by `/workflow:setup` (user scope, active in ever
 | [security-guidance](https://github.com/anthropics/claude-plugins-official) | Warns about insecure code patterns while editing. |
 | [superpowers](https://github.com/obra/superpowers) | Brainstorming, planning, TDD, debugging, and code-review workflows. |
 | [figma](https://github.com/anthropics/claude-plugins-official) | Only for projects with a UI. Reads Figma designs (screens, components, tokens) for the solution doc, building, and testing. Each developer logs in to Figma once. |
+| [modern-web-guidance](https://github.com/GoogleChrome/modern-web-guidance) | Only for projects with a web UI. Current HTML, CSS, and JavaScript practice from the Chrome, Edge, Firefox, and MDN teams: accessibility, performance, forms, security, lightweight fallbacks. Project `CLAUDE.md` rules (such as browser support) win. |
 
 ## Usage tracking
 

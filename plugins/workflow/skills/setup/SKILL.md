@@ -38,6 +38,7 @@ Required user-level plugins (active in every project on the machine):
 | `security-guidance@claude-plugins-official` | built in |
 | `superpowers@claude-plugins-official` | built in |
 | `figma@claude-plugins-official` | built in (only if the project has a UI) |
+| `modern-web-guidance@googlechrome` | `GoogleChrome/modern-web-guidance` (only if the project has a web UI) |
 
 ### Usage tracking
 
