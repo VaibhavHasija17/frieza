@@ -61,7 +61,7 @@ Machine-level plugins installed by `/workflow:setup` (user scope, active in ever
 **Turn it on (once, for the company):**
 
 1. Run a metrics backend that accepts OTLP over HTTP: Prometheus with its OTLP receiver (`--web.enable-otlp-receiver`, endpoint `http://<host>:9090/api/v1/otlp`), Mimir, VictoriaMetrics, or an OpenTelemetry collector in front of any backend. Make sure developer laptops can reach it (office network or VPN).
-2. Share its URL with developers privately (team lead, DevOps, password manager). **The URL never goes in this repository**, which is public. During `/workflow:setup` each developer pastes it once; Claude checks that it answers and saves it to their own `~/.claude/settings.json`. They can reply "skip" and re-run setup later. Re-running setup shows the saved URL and asks whether to keep or replace it.
+2. Share its URL with developers privately (team lead, DevOps, password manager). **The URL never goes in this repository**, which is public. At the end of `/workflow:setup`, Claude asks each developer explicitly for three values, showing the current ones on a re-run: the metrics URL, their team, and their name. Team and name can be skipped one by one, or everything with "skip". Claude checks that the URL answers and saves the values to the developer's own `~/.claude/settings.json`.
 3. Company-wide settings live in `plugins/workflow/skills/setup/telemetry.json`:
    ```json
    { "protocol": "http/protobuf", "temporality": "cumulative", "service_name": "claude-monitoring", "export_events": false }
@@ -71,7 +71,7 @@ Machine-level plugins installed by `/workflow:setup` (user scope, active in ever
    - `export_events: true` also sends per-request events (API calls, tool decisions). Prompts and code stay redacted.
    - Setup never sets `OTEL_METRICS_INCLUDE_SESSION_ID=false`: without the session label, parallel sessions merge into one series and the counts go wrong.
 
-**On the dashboard** (Prometheus names): `claude_code_cost_usage_USD_total` and `claude_code_token_usage_tokens_total` (by model, skill, plugin), `claude_code_session_count_total`, `claude_code_active_time_seconds_total`, `claude_code_lines_of_code_count_total`, `claude_code_commit_count_total`, `claude_code_pull_request_count_total`. Labels include `user_email`, `team_id`, `session_id`, and `vcs_repository_name`. Sum across sessions in queries, e.g. `sum by (user_email, model) (increase(claude_code_cost_usage_USD_total[1d]))`. `/workflow:dev` and `/workflow:review` usage shows up under `skill_name`.
+**On the dashboard** (Prometheus names): `claude_code_cost_usage_USD_total` and `claude_code_token_usage_tokens_total` (by model, skill, plugin), `claude_code_session_count_total`, `claude_code_active_time_seconds_total`, `claude_code_lines_of_code_count_total`, `claude_code_commit_count_total`, `claude_code_pull_request_count_total`. Labels include `developer_name`, `user_email`, `team_id`, `session_id`, and `vcs_repository_name`. Sum across sessions in queries, e.g. `sum by (user_email, model) (increase(claude_code_cost_usage_USD_total[1d]))`. `/workflow:dev` and `/workflow:review` usage shows up under `skill_name`.
 
 **Not sent:** prompts, responses, code, file contents, commands.
 

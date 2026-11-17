@@ -42,7 +42,7 @@ Required user-level plugins (active in every project on the machine):
 
 ### Usage tracking
 
-Claude usage is sent to the company dashboard through Claude Code's built-in OpenTelemetry export. Company settings are in `telemetry.json` in this skill's directory. The endpoint URL is not in that file (the repository is public); each developer gives it during setup (see below). If they skip, skip usage tracking and say so in the report.
+Claude usage is sent to the company dashboard through Claude Code's built-in OpenTelemetry export. Company settings are in `telemetry.json` in this skill's directory. The endpoint URL is not in that file (the repository is public). The developer gives it, with their team and name, in step 6, after the rest of setup is done.
 
 Claude Code ignores telemetry variables in a project's `.claude/settings.json`, so they go in the **user** settings, `~/.claude/settings.json`, under `env`:
 
@@ -52,10 +52,10 @@ Claude Code ignores telemetry variables in a project's `.claude/settings.json`, 
 | `OTEL_METRICS_EXPORTER` | `otlp` |
 | `OTEL_LOGS_EXPORTER` | `otlp` if `export_events` is true; otherwise leave unset |
 | `OTEL_EXPORTER_OTLP_PROTOCOL` | `protocol` from `telemetry.json` |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | the URL the developer gives you (see below) |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | the URL from step 6 |
 | `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE` | `temporality` from `telemetry.json` (`cumulative` for Prometheus and Grafana) |
 | `OTEL_METRICS_INCLUDE_REPOSITORY` | `true` (tags every metric with the git repo) |
-| `OTEL_RESOURCE_ATTRIBUTES` | `team.id=<team>`: ask the developer for their team once; lowercase, no spaces |
+| `OTEL_RESOURCE_ATTRIBUTES` | `team.id=<team>,developer.name=<name>` from step 6; leave out either one the developer skipped. In the name, write spaces as `%20` and leave out commas and `=` (e.g. `developer.name=Vaibhav%20Hasija`). |
 | `OTEL_SERVICE_NAME` | `service_name` from `telemetry.json`, if set |
 
 Never set `OTEL_METRICS_INCLUDE_SESSION_ID` to `false`; if it is set to `false`, remove it. Without the session label, sessions running at the same time write into one series and the cost, token, and session counts come out wrong.
@@ -63,16 +63,6 @@ Never set `OTEL_METRICS_INCLUDE_SESSION_ID` to `false`; if it is set to `false`,
 Never set `OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_ASSISTANT_RESPONSES`, `OTEL_LOG_TOOL_DETAILS`, `OTEL_LOG_TOOL_CONTENT`, or `OTEL_LOG_RAW_API_BODIES`: prompts, code, and commands stay private.
 
 If managed settings already set these variables, leave them alone.
-
-**The endpoint URL.** Check whether `OTEL_EXPORTER_OTLP_ENDPOINT` is already set in `~/.claude/settings.json`. If it is (a re-run or an upgrade), show it and ask whether to keep it or replace it. If it is not, ask the developer:
-
-> Usage tracking needs the company metrics URL (OTLP endpoint). Get it from your team lead or DevOps and paste it here, and I will save it to your `~/.claude/settings.json`. Or reply "skip" to turn usage tracking off for now.
-
-When they give it:
-- It must start with `http://` or `https://`. If it ends in `/v1/metrics`, remove that part: Claude Code adds it.
-- Check it answers: `curl -s -m 5 -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/x-protobuf' --data-binary '' <url>/v1/metrics`. `200` means it works. Anything else (often `000` when off the office network or VPN): tell the developer, and save it anyway if they confirm.
-- Save it with the other variables in step 5 (Apply). When it replaces a different URL, also remove `OTEL_EXPORTER_OTLP_HEADERS` if present: it belonged to the old endpoint, and keeping it would send that credential to the new one.
-- Never write the URL anywhere else: not `telemetry.json`, project files, `CLAUDE.md`, shell profiles, or commits.
 
 ## 2. Inspect the project
 
@@ -115,7 +105,7 @@ Also decide:
 
 Show a short plan:
 - Machine: plugins and marketplaces to add; missing tools with the install command for this OS (e.g. `brew install gh`, `sudo apt install gh`, `winget install GitHub.cli`).
-- Usage tracking: the settings to add, and plainly what is sent: your email and account ID, team, repository, session count, tokens and cost per model, active time, lines added and removed, commits and PRs created, and which skills and plugins were used. Not sent: prompts, responses, code, file contents, or commands.
+- Usage tracking: asked separately at the end (step 6). Say plainly what it sends: your name, email and account ID, team, repository, session count, tokens and cost per model, active time, lines added and removed, commits and PRs created, and which skills and plugins were used. Not sent: prompts, responses, code, file contents, or commands.
 - Project: what was detected, each choice from step 3 and why, and the exact files to create or change, including the list of module CLAUDE.md files to create or update.
 
 Wait for the developer to confirm or adjust. Install system tools only if they explicitly agree.
@@ -123,8 +113,6 @@ Wait for the developer to confirm or adjust. Install system tools only if they e
 ## 5. Apply
 
 **Machine:** add missing marketplaces (`claude plugin marketplace add <repo>`), then install missing plugins (`claude plugin install <plugin> --scope user`). If one fails, report it and continue.
-
-**Usage tracking:** merge the variables from step 1 into the `env` block of `~/.claude/settings.json`. Keep every other key; replace only the variables you set, and remove only what the usage tracking rules above say to remove.
 
 **`.claude/settings.json`** (shared, committed): merge, keep every existing key, do not duplicate entries.
 ```json
@@ -152,11 +140,29 @@ Wait for the developer to confirm or adjust. Install system tools only if they e
 - For many modules, use parallel subagents (one per group of modules) and keep only their results.
 - In a monorepo, a package's CLAUDE.md also lists its own commands where they differ from the root.
 
-## 6. Report
+## 6. Usage tracking
 
-- Machine: installed now, already present, failed; tools still missing; usage tracking on (endpoint, team) or skipped.
+After the rest of setup is applied, ask about usage tracking in its own message, even if it is already set up. Never fill these in silently. Read the current values from the `env` block of `~/.claude/settings.json` and suggest the name from `git config user.name`:
+
+> **Usage tracking** sends your Claude usage to the company dashboard: your name, email, team, repository, sessions, tokens and cost per model, active time, lines changed, commits, PRs, and skills used. Never prompts, responses, code, or commands.
+>
+> 1. Metrics URL (from your team lead or DevOps): <current value, or "not set">
+> 2. Team (lowercase, no spaces, e.g. `backend`): <current value, or "not set">
+> 3. Your name: <current value, or the `git config user.name` suggestion>
+>
+> Reply with the values (or "keep" for the ones shown), "skip 2" or "skip 3" to leave out team or name, or "skip" to turn usage tracking off.
+
+Wait for the answer. Then:
+- **Skip:** change nothing. If tracking was on, ask whether to switch it off; if yes, remove the variables from step 1.
+- **URL:** must start with `http://` or `https://`; remove a trailing `/v1/metrics` (Claude Code adds it). Check it answers: `curl -s -m 5 -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/x-protobuf' --data-binary '' <url>/v1/metrics`. `200` means it works. Anything else (often `000` off the office network or VPN): say so, and save it only if the developer confirms.
+- **Save:** merge the variables from step 1 into the `env` block of `~/.claude/settings.json`. Keep every other key; replace only the variables you set. When the URL changes, also remove `OTEL_EXPORTER_OTLP_HEADERS` if present: it belonged to the old endpoint, and keeping it would send that credential to the new one. Remove `OTEL_METRICS_INCLUDE_SESSION_ID` if it is `false`.
+- Never write these values anywhere else: not `telemetry.json`, project files, `CLAUDE.md`, shell profiles, or commits.
+
+## 7. Report
+
+- Machine: installed now, already present, failed; tools still missing; usage tracking on (endpoint, team, name) or skipped.
 - Project: files created, changed, or skipped as up to date, and each adaptation made with its reason.
 - Next steps:
-  1. If the developer skipped the usage tracking URL: re-run `/workflow:setup` once they have it.
+  1. If the developer skipped usage tracking: re-run `/workflow:setup` once they have the URL.
   2. Restart Claude Code so new plugins and settings load. Usage data then appears on the dashboard within a few minutes (metric `claude_code.session.count`).
   3. Review, then commit `.claude/settings.json`, `CLAUDE.md`, and the module `CLAUDE.md` files.
