@@ -60,20 +60,18 @@ Machine-level plugins installed by `/workflow:setup` (user scope, active in ever
 
 **Turn it on (once, for the company):**
 
-1. Run an OpenTelemetry collector that feeds your metrics backend (Grafana/Prometheus, Datadog, New Relic, Honeycomb, etc.).
-2. Set its URL in `plugins/workflow/skills/setup/telemetry.json`:
+1. Run a metrics backend that accepts OTLP over HTTP: Prometheus with its OTLP receiver (`--web.enable-otlp-receiver`, endpoint `http://<host>:9090/api/v1/otlp`), Mimir, VictoriaMetrics, or an OpenTelemetry collector in front of any backend. Make sure developer laptops can reach it (office network or VPN).
+2. Share its URL with developers privately (team lead, DevOps, password manager). **The URL never goes in this repository**, which is public. During `/workflow:setup` each developer pastes it once; Claude checks that it answers and saves it to their own `~/.claude/settings.json`. They can reply "skip" and re-run setup later. Re-running setup shows the saved URL and asks whether to keep or replace it.
+3. Company-wide settings live in `plugins/workflow/skills/setup/telemetry.json`:
    ```json
-   { "endpoint": "https://otel.example.com:4318", "protocol": "http/protobuf", "temporality": "cumulative",
-     "needs_token": false, "auth_scheme": "Bearer", "export_events": false }
+   { "protocol": "http/protobuf", "temporality": "cumulative", "service_name": "claude-monitoring", "export_events": false }
    ```
    - `temporality`: `cumulative` for Prometheus, Grafana, and Mimir; `delta` for backends that prefer it (e.g. Datadog).
-   - `auth_scheme`: `Basic` for Grafana Cloud, `Bearer` for most others.
-   - `needs_token: true` means the collector needs a token. **The token never goes in this file or any repo.** Share it through your password manager, and use a token that can only send metrics. During setup each developer pastes it into the chat once; Claude saves it to their own `~/.claude/settings.json` (`OTEL_EXPORTER_OTLP_HEADERS`) and never repeats it or writes it anywhere else. Developers can also reply "skip" and add it themselves.
-   - `service_name`: optional; shows as the `job` label in Grafana.
+   - `service_name`: optional; shows as the `job` label.
    - `export_events: true` also sends per-request events (API calls, tool decisions). Prompts and code stay redacted.
-3. Push, and have developers re-run `/workflow:setup`. While `endpoint` is empty, setup skips usage tracking.
+   - Setup never sets `OTEL_METRICS_INCLUDE_SESSION_ID=false`: without the session label, parallel sessions merge into one series and the counts go wrong.
 
-**On the dashboard** (metric names): `claude_code.cost.usage` and `claude_code.token.usage` (by model, skill, plugin), `claude_code.session.count`, `claude_code.active_time.total`, `claude_code.lines_of_code.count`, `claude_code.commit.count`, `claude_code.pull_request.count`. Labels include `user.email`, `team.id`, and `vcs.repository.name`. `/workflow:dev` and `/workflow:review` usage shows up under `skill.name`.
+**On the dashboard** (Prometheus names): `claude_code_cost_usage_USD_total` and `claude_code_token_usage_tokens_total` (by model, skill, plugin), `claude_code_session_count_total`, `claude_code_active_time_seconds_total`, `claude_code_lines_of_code_count_total`, `claude_code_commit_count_total`, `claude_code_pull_request_count_total`. Labels include `user_email`, `team_id`, `session_id`, and `vcs_repository_name`. Sum across sessions in queries, e.g. `sum by (user_email, model) (increase(claude_code_cost_usage_USD_total[1d]))`. `/workflow:dev` and `/workflow:review` usage shows up under `skill_name`.
 
 **Not sent:** prompts, responses, code, file contents, commands.
 
